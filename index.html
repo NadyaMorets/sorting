@@ -25,53 +25,19 @@
     </div>
     <script src="https://unpkg.com/@vkontakte/vk-bridge@2.15.6/dist/browser.min.js"></script>
     <script>
-      // Инициализация VK Bridge
-      vkBridge.send('VKWebAppInit')
-        .then(() => {
-          console.log('VK Bridge initialized');
-          
-          // Получаем информацию о пользователе (опционально)
-          return vkBridge.send('VKWebAppGetUserInfo');
-        })
-        .then((user) => {
-          console.log('User info:', user);
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-        });
-        window.addEventListener('blur', () => {
-    if (window.unityInstance) {
-        unityInstance.SendMessage('AudioManager', 'PauseAllAudio');
-    }
-});
-
-window.addEventListener('focus', () => {
-    if (window.unityInstance) {
-        unityInstance.SendMessage('AudioManager', 'ResumeAllAudio');
-    }
-});
-// Принудительная пауза при уходе со страницы
-window.addEventListener('visibilitychange', () => {
-    if (document.hidden && window.unityInstance) {
-        unityInstance.SendMessage('AudioManager', 'PauseAllAudio');
-    }
-});
-      // Проверяем, находимся ли внутри VK
+      vkBridge.send('VKWebAppInit');
+      vkBridge.send('VKWebAppGetUserInfo')
+      .then((user) => {
+        console.log('User info:', user);
+      })
+      .catch((error) => {
+        console.error('Failed to get user info:', error);
+      });
       if (window.parent !== window) {
-    
-    function handleCloseApp() {
-        vkBridge.send('VKWebAppClose', { status: 'success' })
-            .then(() => console.log('App closed'))
-            .catch(e => console.error('Close error:', e));
-    }
-    // Для закрытия на десктопе
-    window.addEventListener('beforeunload', handleCloseApp);
-    
-    // Для мобильных устройств
-    window.addEventListener('pagehide', handleCloseApp);
-}else {
-        console.log('Running outside VK');
-      }
+  console.log('Running inside VK');
+} else {
+  console.log('Running outside VK');
+}
       
 
       var container = document.querySelector("#unity-container");
@@ -159,6 +125,19 @@ window.addEventListener('visibilitychange', () => {
                 fullscreenButton.onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
+                vkBridge.subscribe((e) => {
+                  if (e.detail.type === 'VKWebAppViewHide') {
+                    // Игра сворачивается — ставим на паузу
+                    if (window.unityInstance) {
+                      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'true');
+                    }
+                  } else if (e.detail.type === 'VKWebAppViewRestored') {
+                    // Игра разворачивается — снимаем с паузы
+                    if (window.unityInstance) {
+                      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'false');
+                    }
+                  }
+                });
               }).catch((message) => {
                 alert(message);
               });
