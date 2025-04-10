@@ -44,23 +44,32 @@
       if (window.parent !== window) {
         console.log('Running inside VK');
         
-        // Функция для закрытия приложения
-        function handleCloseApp() {
-          vkBridge.send('VKWebAppClose', { status: 'success' })
-            .then(() => console.log('App closed successfully'))
-            .catch((error) => console.error('Failed to close app:', error));
-        }
-        
-        // Обработчик для системного крестика VK
-        window.addEventListener('beforeunload', (event) => {
-          // Отменяем стандартное поведение
-          event.preventDefault();
-          // Вызываем наше закрытие
-          handleCloseApp();
+        // Обработчик для крестика в VK
+        window.addEventListener('beforeunload', () => {
+            vkBridge.send('VKWebAppClose', { status: 'success' })
+                .then(() => console.log('Closed by VK API'))
+                .catch(e => console.error('Close failed:', e));
         });
+
+        // Для кнопки закрытия в Unity (если будет)
+        /*window.unityCloseApp = function() {
+            vkBridge.send('VKWebAppClose', { status: 'success' });
+        };*/
         
         // Делаем функцию доступной для вызова из Unity, если понадобится
-        window.handleCloseApp = handleCloseApp;
+        //window.handleCloseApp = handleCloseApp;
+        // Остановка музыки при сворачивании (для Unity WebGL)
+        window.addEventListener('blur', () => {
+          if (window.unityInstance) {
+              unityInstance.SendMessage('AudioManager', 'PauseAllAudio');
+            }
+          });
+
+        window.addEventListener('focus', () => {
+          if (window.unityInstance) {
+              unityInstance.SendMessage('AudioManager', 'ResumeAllAudio');
+          }
+        });
       } else {
         console.log('Running outside VK');
       }
