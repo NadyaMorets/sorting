@@ -38,6 +38,7 @@
 } else {
   console.log('Running outside VK');
 }
+
       
 
       var container = document.querySelector("#unity-container");
@@ -125,19 +126,21 @@
                 fullscreenButton.onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
+                
                 vkBridge.subscribe((e) => {
-                  if (e.detail.type === 'VKWebAppViewHide') {
-                    // Игра сворачивается — ставим на паузу
-                    if (window.unityInstance) {
-                      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'true');
-                    }
-                  } else if (e.detail.type === 'VKWebAppViewRestored') {
-                    // Игра разворачивается — снимаем с паузы
-                    if (window.unityInstance) {
-                      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'false');
-                    }
-                  }
-                });
+  if (e.detail.type === 'VKWebAppViewHide') {
+    // Игра сворачивается — ставим на паузу
+    if (window.unityInstance) {
+      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'true');
+    }
+  } else if (e.detail.type === 'VKWebAppViewRestored') {
+    // Игра разворачивается — снимаем с паузы
+    if (window.unityInstance) {
+      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'false');
+    }
+  }
+});
+
               }).catch((message) => {
                 alert(message);
               });
