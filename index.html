@@ -39,40 +39,40 @@
         .catch((error) => {
           console.error('Error:', error);
         });
+        window.addEventListener('blur', () => {
+    if (window.unityInstance) {
+        unityInstance.SendMessage('AudioManager', 'PauseAllAudio');
+    }
+});
 
+window.addEventListener('focus', () => {
+    if (window.unityInstance) {
+        unityInstance.SendMessage('AudioManager', 'ResumeAllAudio');
+    }
+});
+// Принудительная пауза при уходе со страницы
+window.addEventListener('visibilitychange', () => {
+    if (document.hidden && window.unityInstance) {
+        unityInstance.SendMessage('AudioManager', 'PauseAllAudio');
+    }
+});
       // Проверяем, находимся ли внутри VK
       if (window.parent !== window) {
-        console.log('Running inside VK');
-        
-        // Обработчик для крестика в VK
-        window.addEventListener('beforeunload', () => {
-            vkBridge.send('VKWebAppClose', { status: 'success' })
-                .then(() => console.log('Closed by VK API'))
-                .catch(e => console.error('Close failed:', e));
-        });
-
-        // Для кнопки закрытия в Unity (если будет)
-        /*window.unityCloseApp = function() {
-            vkBridge.send('VKWebAppClose', { status: 'success' });
-        };*/
-        
-        // Делаем функцию доступной для вызова из Unity, если понадобится
-        //window.handleCloseApp = handleCloseApp;
-        // Остановка музыки при сворачивании (для Unity WebGL)
-        window.addEventListener('blur', () => {
-          if (window.unityInstance) {
-              unityInstance.SendMessage('AudioManager', 'PauseAllAudio');
-            }
-          });
-
-        window.addEventListener('focus', () => {
-          if (window.unityInstance) {
-              unityInstance.SendMessage('AudioManager', 'ResumeAllAudio');
-          }
-        });
-      } else {
+    
+    function handleCloseApp() {
+        vkBridge.send('VKWebAppClose', { status: 'success' })
+            .then(() => console.log('App closed'))
+            .catch(e => console.error('Close error:', e));
+    }
+    // Для закрытия на десктопе
+    window.addEventListener('beforeunload', handleCloseApp);
+    
+    // Для мобильных устройств
+    window.addEventListener('pagehide', handleCloseApp);
+}else {
         console.log('Running outside VK');
       }
+      
 
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
