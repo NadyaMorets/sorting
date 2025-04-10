@@ -25,19 +25,45 @@
     </div>
     <script src="https://unpkg.com/@vkontakte/vk-bridge@2.15.6/dist/browser.min.js"></script>
     <script>
-      vkBridge.send('VKWebAppInit');
-      vkBridge.send('VKWebAppGetUserInfo')
-      .then((user) => {
-        console.log('User info:', user);
-      })
-      .catch((error) => {
-        console.error('Failed to get user info:', error);
-      });
+      // Инициализация VK Bridge
+      vkBridge.send('VKWebAppInit')
+        .then(() => {
+          console.log('VK Bridge initialized');
+          
+          // Получаем информацию о пользователе (опционально)
+          return vkBridge.send('VKWebAppGetUserInfo');
+        })
+        .then((user) => {
+          console.log('User info:', user);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+
+      // Проверяем, находимся ли внутри VK
       if (window.parent !== window) {
-  console.log('Running inside VK');
-} else {
-  console.log('Running outside VK');
-}
+        console.log('Running inside VK');
+        
+        // Функция для закрытия приложения
+        function handleCloseApp() {
+          vkBridge.send('VKWebAppClose', { status: 'success' })
+            .then(() => console.log('App closed successfully'))
+            .catch((error) => console.error('Failed to close app:', error));
+        }
+        
+        // Обработчик для системного крестика VK
+        window.addEventListener('beforeunload', (event) => {
+          // Отменяем стандартное поведение
+          event.preventDefault();
+          // Вызываем наше закрытие
+          handleCloseApp();
+        });
+        
+        // Делаем функцию доступной для вызова из Unity, если понадобится
+        window.handleCloseApp = handleCloseApp;
+      } else {
+        console.log('Running outside VK');
+      }
 
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
