@@ -9,7 +9,7 @@
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <canvas id="unity-canvas" width=600 height=1280 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -112,15 +112,18 @@
         // Set the container to take the full width and height of the viewport
         container.style.width = "100%";
         container.style.height = "100vh"; // 100% of the viewport height
+        container.className = "unity-desktop"; // Добавляем класс для десктопа
 
-        // Set the canvas to maintain the aspect ratio (e.g., 9:18)
-        canvas.style.width = "50%";
-        canvas.style.height = "100vh"; // 100% of the viewport height to maintain 9:18 aspect ratio
+        // Set the canvas to maintain the aspect ratio 9:21
+        canvas.style.width = (27 / 64 * 100) + "%"; // Calculate the width to maintain the 9:21 aspect ratio
+        canvas.style.height = "100%"; // 100% of the container height to maintain 9:21 aspect ratio
 
         // Center the canvas vertically and horizontally
         container.style.display = "flex";
         container.style.justifyContent = "center";
         container.style.alignItems = "center";
+        canvas.style.margin = "0"; // Убедимся, что у canvas нет отступов
+        canvas.style.padding = "0"; // Убедимся, что у canvas нет отступов
       }
 
       loadingBar.style.display = "block";
@@ -144,11 +147,13 @@
 
       document.body.appendChild(script);
       
-      // Добавление прослушивания события и функция eventHandler
+      // Добавление прослушивания событий и функция eventHandler
       document.addEventListener('visibilitychange', eventHandler);
+      document.addEventListener('pagehide', eventHandler);
+      document.addEventListener('beforeunload', eventHandler);
 
 function eventHandler() {
-    if (document.hidden) {
+          if (document.hidden || event.type === 'pagehide' || event.type === 'beforeunload') {
         console.log("PauseOn"); // Останавливаем воспроизведение аудио 
           if (myGameInstance) {
         myGameInstance.SendMessage('VKManager', 'SetGamePaused', "true");
