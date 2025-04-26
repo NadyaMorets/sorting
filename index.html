@@ -38,7 +38,26 @@
 } else {
   console.log('Running outside VK');
 }
+    // Подписка на событие VKWebAppUpdateConfig
+    vkBridge.subscribe((e) => {
+        if (e.detail.type === 'VKWebAppUpdateConfig') {
+            const { appState } = e.detail.data;
+            if (appState === 'background') {
+                console.log("PauseOn"); // Останавливаем воспроизведение аудио 
+                if (myGameInstance) {
+                    myGameInstance.SendMessage('VKManager', 'SetGamePaused', "true");
+                }
+            } else if (appState === 'foreground') {
+                console.log("PauseOff"); // Запускаем воспроизведение
+                if (myGameInstance) {
+                    myGameInstance.SendMessage('VKManager', 'SetGamePaused', "false");
+                }
+            }
+        }
+    });
 
+    // Отправка запроса для получения текущего состояния приложения
+    vkBridge.send('VKWebAppUpdateConfig', {});
       
 
       var container = document.querySelector("#unity-container");
