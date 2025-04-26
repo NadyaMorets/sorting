@@ -106,15 +106,25 @@
         // performance, uncomment the following line:
         // config.devicePixelRatio = 1;
 
-
       } else {
         // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
 
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
+        // Set the container to take the full width and height of the viewport
+        container.style.width = "100%";
+        container.style.height = "100vh"; // 100% of the viewport height
+
+        // Set the canvas to maintain the aspect ratio (e.g., 9:18)
+        canvas.style.width = "50%";
+        canvas.style.height = "100vh"; // 100% of the viewport height to maintain 9:18 aspect ratio
+
+        // Center the canvas vertically and horizontally
+        container.style.display = "flex";
+        container.style.justifyContent = "center";
+        container.style.alignItems = "center";
       }
 
       loadingBar.style.display = "block";
+      var myGameInstance = null;
 
       var script = document.createElement("script");
       script.src = loaderUrl;
@@ -122,31 +132,34 @@
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
               }).then((unityInstance) => {
+                myGameInstance = unityInstance;
                 loadingBar.style.display = "none";
                 fullscreenButton.onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
-                
-                vkBridge.subscribe((e) => {
-  if (e.detail.type === 'VKWebAppViewHide') {
-    // Игра сворачивается — ставим на паузу
-    if (window.unityInstance) {
-      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'true');
-    }
-  } else if (e.detail.type === 'VKWebAppViewRestored') {
-    // Игра разворачивается — снимаем с паузы
-    if (window.unityInstance) {
-      window.unityInstance.SendMessage('VKManager', 'SetGamePaused', 'false');
-    }
-  }
-});
-
-              }).catch((message) => {
+                }).catch((message) => {
                 alert(message);
               });
             };
 
       document.body.appendChild(script);
+      
+      // Добавление прослушивания события и функция eventHandler
+      document.addEventListener('visibilitychange', eventHandler);
+
+function eventHandler() {
+    if (document.hidden) {
+        console.log("PauseOn"); // Останавливаем воспроизведение аудио 
+          if (myGameInstance) {
+        myGameInstance.SendMessage('VKManager', 'SetGamePaused', "true");
+    }
+        } else {
+          console.log("PauseOff"); // Запускаем воспроизведение
+          if (myGameInstance) {
+            myGameInstance.SendMessage('VKManager', 'SetGamePaused', "false");
+}
+        }
+      }
 
     </script>
   </body>
